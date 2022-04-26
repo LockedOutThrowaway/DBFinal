@@ -1,22 +1,23 @@
 CREATE TABLE Users(
-    UserId SERIAL PRIMARY KEY,
-    NetId TEXT NOT NULL UNIQUE,
+    UserId INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    Username TEXT NOT NULL UNIQUE,
     Name TEXT NOT NULL,
     PasswordHash TEXT NOT NULL
 );
 
 CREATE TABLE Students(
-    StudentId SERIAL PRIMARY KEY,
+    StudentId INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
     UserId INTEGER NOT NULL UNIQUE,
     Major TEXT NOT NULL,
     FOREIGN KEY(UserId) REFERENCES Users(UserId)
 );
 
-CREATE TABLE Professors(
-    ProfessorId SERIAL PRIMARY KEY,
+CREATE TABLE Faculty(
+    FacultyId INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
     UserId INTEGER NOT NULL UNIQUE,
     Title TEXT NOT NULL,
     Department TEXT NOT NULL,
+    isAdmin BOOLEAN NOT NULL,
     FOREIGN KEY(UserId) REFERENCES Users(UserId)
 );
 
@@ -32,7 +33,7 @@ CREATE TABLE Teaches(
     ProfessorId INTEGER NOT NULL,
     CourseCategory TEXT NOT NULL,
     CourseCode TEXT NOT NULL,
-    FOREIGN KEY(ProfessorId) REFERENCES Professors(ProfessorId),
+    FOREIGN KEY(ProfessorId) REFERENCES Faculty(FacultyId),
     FOREIGN KEY(CourseCategory, CourseCode) REFERENCES Courses(Category, Code)
 );
 

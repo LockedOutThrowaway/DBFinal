@@ -3,7 +3,9 @@ import { App } from "./App";
 import { mergeStyles } from "@fluentui/react";
 import reportWebVitals from "./reportWebVitals";
 import { BrowserRouter } from "react-router-dom";
-import { initializeIcons } from "@fluentui/font-icons-mdl2";
+import { initializeIcons } from "@fluentui/react/lib/Icons";
+
+initializeIcons();
 
 // Inject some global styles
 mergeStyles({
@@ -13,8 +15,6 @@ mergeStyles({
     height: "100vh",
   },
 });
-
-initializeIcons();
 
 const app = (
   <BrowserRouter>

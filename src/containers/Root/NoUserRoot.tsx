@@ -8,8 +8,8 @@ import {
   ITextStyles,
   DefaultButton,
 } from "@fluentui/react";
-import "./Root.css";
 import { useNavigate } from "react-router-dom";
+import { Background } from "../../components/Background/Background";
 
 const textStyles: Partial<ITextStyles> = {
   root: {
@@ -23,7 +23,6 @@ const stackStyles: Partial<IStackStyles> = {
     width: "960px",
     margin: "0 auto",
     textAlign: "center",
-    color: "#605e5c",
   },
 };
 
@@ -31,45 +30,35 @@ export const NoUserRoot: React.FunctionComponent = () => {
   const navigate = useNavigate();
 
   return (
-    <Stack
-      horizontalAlign="center"
-      verticalAlign="center"
-      verticalFill
-      styles={stackStyles}
-      tokens={stackTokens}
-    >
-      <Text variant="mega" styles={textStyles}>
-        Welcome to USF's Course Management System
-      </Text>
-      <Text variant="xxLarge" styles={textStyles}>
-        Let's get you registered
-      </Text>
+    <Background>
       <Stack
-        horizontal
+        horizontalAlign="center"
+        verticalAlign="center"
+        verticalFill
+        styles={stackStyles}
         tokens={stackTokens}
-        styles={{
-          root: {
-            paddingBlockStart: 30,
-          },
-        }}
       >
-        <DefaultButton
-          iconProps={{
-            iconName: "Education",
-          }}
-          onClick={() => navigate("/register/student")}
-        >
-          I am a Student
-        </DefaultButton>
-        <DefaultButton
-          iconProps={{
-            iconName: "D365TalentLearn",
-          }}
-          onClick={() => navigate("/register/professor")}
-        >
-          I am a Professor
-        </DefaultButton>
+        <Text variant="mega" styles={textStyles}>
+          Welcome to USF's Course Management System
+        </Text>
+        <Text variant="xxLarge" styles={textStyles}>
+          A platform to register for courses and see your past enrollments
+        </Text>
+        <div>
+          <Stack
+            tokens={stackTokens}
+            horizontal
+            styles={{ root: { marginTop: 15 } }}
+          >
+            <DefaultButton onClick={() => navigate("/register")}>
+              Register
+            </DefaultButton>
+            <DefaultButton onClick={() => navigate("/login")}>
+              Login
+            </DefaultButton>
+          </Stack>
+        </div>
       </Stack>
-    </Stack>
+    </Background>
   );
 };
