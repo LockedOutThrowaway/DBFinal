@@ -2,24 +2,13 @@ import {
   ChoiceGroup,
   IChoiceGroupOption,
   IChoiceGroupStyles,
-  IStackStyles,
-  IStackTokens,
   ITextFieldStyles,
   PrimaryButton,
-  Stack,
   TextField,
 } from "@fluentui/react";
 import { useFormik } from "formik";
+import { Section } from "../../components/Section/Section";
 import { UserValidationSchema, User } from "./Schemas/User";
-
-const stackTokens: IStackTokens = {
-  childrenGap: 15,
-};
-const stackStyles: Partial<IStackStyles> = {
-  root: {
-    marginTop: "15px",
-  },
-};
 
 const inputStyles: Partial<ITextFieldStyles> = {
   root: {
@@ -48,31 +37,30 @@ const options: IChoiceGroupOption[] = [
     key: "student",
     value: "student",
     text: "Student",
-    iconProps: {
-      iconName: "academic",
+    styles: {
+      root: {
+        color: "white",
+      },
     },
   },
   {
     key: "faculty",
     value: "faculty",
     text: "Faculty",
-    iconProps: {
-      iconName: "",
-      styles: {
-        root: {
-          color: "black",
-        },
+    styles: {
+      root: {
+        color: "white",
       },
     },
   },
 ];
 
 const defaultInitialValues = {
-  name: "Jose Ramirez",
-  username: "jose56",
-  password: "Abcd1234!",
-  confirmPassword: "Abcd1234!",
-  accountType: "student",
+  name: "",
+  username: "",
+  password: "",
+  confirmPassword: "",
+  accountType: "",
 };
 
 type RegisterUserFormProps = {
@@ -100,12 +88,7 @@ export const UserForm: React.FunctionComponent<RegisterUserFormProps> = ({
   });
 
   return (
-    <Stack
-      horizontalAlign="center"
-      verticalAlign="center"
-      styles={stackStyles}
-      tokens={stackTokens}
-    >
+    <>
       <TextField
         styles={inputStyles}
         name="name"
@@ -163,11 +146,11 @@ export const UserForm: React.FunctionComponent<RegisterUserFormProps> = ({
         defaultSelectedKey={values.accountType}
       />
 
-      <div style={{ marginTop: 30 }}>
+      <Section horizontal extraSpacing>
         <PrimaryButton onClick={() => handleSubmit()} disabled={!isValid}>
           Next
         </PrimaryButton>
-      </div>
-    </Stack>
+      </Section>
+    </>
   );
 };

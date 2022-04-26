@@ -1,30 +1,18 @@
 import {
   FontWeights,
-  IStackStyles,
-  IStackTokens,
   ITextFieldStyles,
   ITextStyles,
   PrimaryButton,
-  Stack,
   Text,
   TextField,
 } from "@fluentui/react";
 import { useFormik } from "formik";
 import React, { useContext } from "react";
 import { useNavigate } from "react-router-dom";
-import { Background } from "../../components/Background/Background";
 import { LoginSchema, LoginType } from "./LoginSchema";
 import { UserContext } from "../../contexts/UserContext";
+import { Section } from "../../components/Section/Section";
 
-const stackTokens: IStackTokens = {
-  childrenGap: 15,
-};
-const stackStyles: Partial<IStackStyles> = {
-  root: {
-    width: "960px",
-    margin: "0 auto",
-  },
-};
 const textStyles: Partial<ITextStyles> = {
   root: {
     fontWeight: FontWeights.regular,
@@ -110,59 +98,45 @@ export const Login: React.FunctionComponent = () => {
   }
 
   return (
-    <Background>
-      <Stack
-        horizontalAlign="center"
-        verticalAlign="center"
-        verticalFill
-        styles={stackStyles}
-        tokens={stackTokens}
-      >
-        <Stack styles={{ root: { textAlign: "center" } }} tokens={stackTokens}>
-          <Text variant="mega" styles={textStyles}>
-            Log in
+    <>
+      <Section centerText>
+        <Text variant="mega" styles={textStyles}>
+          Log in
+        </Text>
+        {message && (
+          <Text variant="medium" styles={errorTextStyles}>
+            {message}
           </Text>
-          {message && (
-            <Text variant="medium" styles={errorTextStyles}>
-              {message}
-            </Text>
-          )}
-        </Stack>
-        <Stack
-          horizontalAlign="center"
-          verticalAlign="center"
-          styles={stackStyles}
-          tokens={stackTokens}
-        >
-          <TextField
-            styles={inputStyles}
-            name="username"
-            label="Username:"
-            onChange={handleChange}
-            onBlur={handleBlur}
-            value={values.username}
-            errorMessage={touched.username ? errors.username : undefined}
-            required
-          />
-          <TextField
-            styles={inputStyles}
-            name="password"
-            label="Password:"
-            type="password"
-            canRevealPassword
-            onChange={handleChange}
-            onBlur={handleBlur}
-            value={values.password}
-            errorMessage={touched.password ? errors.password : undefined}
-            required
-          />
-          <div style={{ marginTop: 30 }}>
-            <PrimaryButton onClick={() => handleSubmit()} disabled={!isValid}>
-              Submit
-            </PrimaryButton>
-          </div>
-        </Stack>
-      </Stack>
-    </Background>
+        )}
+      </Section>
+
+      <TextField
+        styles={inputStyles}
+        name="username"
+        label="Username:"
+        onChange={handleChange}
+        onBlur={handleBlur}
+        value={values.username}
+        errorMessage={touched.username ? errors.username : undefined}
+        required
+      />
+      <TextField
+        styles={inputStyles}
+        name="password"
+        label="Password:"
+        type="password"
+        canRevealPassword
+        onChange={handleChange}
+        onBlur={handleBlur}
+        value={values.password}
+        errorMessage={touched.password ? errors.password : undefined}
+        required
+      />
+      <Section horizontal extraSpacing>
+        <PrimaryButton onClick={() => handleSubmit()} disabled={!isValid}>
+          Submit
+        </PrimaryButton>
+      </Section>
+    </>
   );
 };

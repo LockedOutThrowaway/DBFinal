@@ -2,24 +2,12 @@ import React from "react";
 import { useFormik } from "formik";
 import {
   DefaultButton,
-  IStackStyles,
-  IStackTokens,
   ITextFieldStyles,
   PrimaryButton,
-  Stack,
   TextField,
 } from "@fluentui/react";
 import { Student, StudentValidationSchema } from "./Schemas/Student";
-
-const stackTokens: IStackTokens = {
-  childrenGap: 15,
-};
-
-const stackStyles: Partial<IStackStyles> = {
-  root: {
-    marginTop: "15px",
-  },
-};
+import { Section } from "../../components/Section/Section";
 
 const inputStyles: Partial<ITextFieldStyles> = {
   root: {
@@ -64,12 +52,7 @@ export const StudentForm: React.FunctionComponent<UserFormProps> = ({
   });
 
   return (
-    <Stack
-      horizontalAlign="center"
-      verticalAlign="center"
-      styles={stackStyles}
-      tokens={stackTokens}
-    >
+    <>
       <TextField
         styles={inputStyles}
         name="major"
@@ -80,14 +63,12 @@ export const StudentForm: React.FunctionComponent<UserFormProps> = ({
         errorMessage={touched.major ? errors.major : undefined}
         required
       />
-      <div>
-        <Stack horizontal styles={stackStyles} tokens={stackTokens}>
-          <DefaultButton onClick={onCancel}>Previous</DefaultButton>
-          <PrimaryButton onClick={() => handleSubmit()} disabled={!isValid}>
-            Submit
-          </PrimaryButton>
-        </Stack>
-      </div>
-    </Stack>
+      <Section horizontal extraSpacing>
+        <DefaultButton onClick={onCancel}>Previous</DefaultButton>
+        <PrimaryButton onClick={() => handleSubmit()} disabled={!isValid}>
+          Submit
+        </PrimaryButton>
+      </Section>
+    </>
   );
 };

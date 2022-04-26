@@ -2,75 +2,13 @@ import express from "express";
 import SQL from "sql-template-strings";
 import { database } from "./db/database.js";
 import bcrypt from "bcrypt";
+import { setupAuthentication } from "./authentication.js";
 import passport from "passport";
-import LocalStrategy from "passport-local";
-import session from "express-session";
 
 const app = express();
 
 app.use(express.json());
-app.use(
-  session({
-    secret: "secret",
-    resave: false,
-    saveUninitialized: false,
-  })
-);
-app.use(passport.initialize());
-app.use(passport.session());
-
-passport.use(
-  new LocalStrategy(async (username, password, done) => {
-    try {
-      const result = await database.get(
-        SQL`SELECT Username, UserId, PasswordHash FROM users WHERE Username = ${username}`
-      );
-
-      if (!result) {
-        return done(null, false, { message: "Wrong username or password." });
-      }
-
-      const match = await bcrypt.compare(password, result.PasswordHash);
-
-      if (!match) {
-        return done(null, false, { message: "Wrong username or password." });
-      }
-
-      return done(null, result);
-    } catch (err) {
-      return done(err);
-    }
-  })
-);
-
-passport.serializeUser((user, done) => {
-  console.log(user);
-  done(null, user.UserId);
-});
-
-passport.deserializeUser(async (id, done) => {
-  try {
-    const result = await database.get(
-      SQL`
-        SELECT
-          u.UserId,
-          u.Username,
-          u.Name,
-          CASE WHEN s.UserId IS NOT NULL THEN 'student' WHEN f.UserId IS NOT NULL THEN 'teacher' else null END AS UserType
-        FROM
-          Users u
-        LEFT JOIN Faculty f ON f.UserId = u.UserId
-        LEFT JOIN Students s ON s.UserId = u.UserId
-        WHERE
-          u.UserId = ${id}
-      `
-    );
-
-    done(null, result);
-  } catch (err) {
-    return done(err);
-  }
-});
+setupAuthentication(app);
 
 app.post("/api/login", passport.authenticate("local"), (req, res) => {
   res.sendStatus(200);
@@ -117,7 +55,7 @@ app.post("/api/users", async (req, res) => {
     } else {
       const { department, title, isAdmin } = specificProfile;
       await database.run(
-        SQL`INSERT INTO Professors (UserId, Department, Title, isAdmin) 
+        SQL`INSERT INTO Faculty (UserId, Department, Title, isAdmin) 
           VALUES (${user.UserId}, ${department}, ${title}, ${isAdmin})`
       );
     }
@@ -136,6 +74,208 @@ app.post("/api/users", async (req, res) => {
 app.get("/api/users/current", (req, res) => {
   if (req.user) {
     res.json(req.user);
+  } else {
+    res.sendStatus(401);
+  }
+});
+
+app.get("/api/users/current/courses", async (req, res) => {
+  if (req.user?.StudentId) {
+    const { StudentId } = req.user;
+
+    const pastClasses = await database.all(
+      SQL`
+      SELECT * FROM Registration r
+      LEFT JOIN Courses c ON c.Category = r.CourseCategory AND c.Code = r.CourseCode
+      LEFT JOIN Students s ON s.StudentId = r.StudentId
+      WHERE s.StudentId = ${StudentId} AND Grade IS NOT NULL`
+    );
+
+    const currentClasses = await database.all(
+      SQL`
+      SELECT 
+        c.Category,
+        c.Code,
+        c.Title,
+        c.Credits
+      FROM Registration r
+      LEFT JOIN Courses c ON c.Category = r.CourseCategory AND c.Code = r.CourseCode
+      LEFT JOIN Students s ON s.StudentId = r.StudentId
+      WHERE s.StudentId = ${StudentId} AND Grade IS NULL`
+    );
+
+    const classesToEnroll = await database.all(
+      SQL`
+      SELECT
+        c.Category,
+        c.Code,
+        c.Title,
+        c.Credits,
+        pre.Category AS PrereqCategory,
+        pre.Code AS PrereqCode,
+        pre.Title AS PrereqTitle,
+        p.Grade AS PrereqGrade
+      FROM Courses c
+      LEFT JOIN Registration r 
+        ON r.CourseCategory = c.Category 
+        AND r.CourseCode = c.Code 
+        AND r.StudentId = ${StudentId}
+      LEFT JOIN PreRequisite p ON p.CourseCategory = c.Category AND p.CourseCode = c.Code
+      LEFT JOIN Courses pre ON pre.Category = p.PreCourseCategory AND pre.Code = p.PreCourseCode
+      WHERE r.StudentId IS NULL
+      `
+    );
+
+    const final = {};
+
+    classesToEnroll.forEach((course) => {
+      if (!final[course.Category + course.Code]) {
+        final[course.Category + course.Code] = {
+          Category: course.Category,
+          Code: course.Code,
+          Title: course.Title,
+          Credits: course.Credits,
+          Grade: course.Grade,
+          PreRequisites: [],
+        };
+      }
+
+      if (course.PrereqCategory) {
+        final[course.Category + course.Code].PreRequisites.push({
+          Category: course.PrereqCategory,
+          Code: course.PrereqCode,
+          Title: course.PrereqTitle,
+          Grade: course.PrereqGrade,
+        });
+      }
+    });
+
+    res.json({
+      pastClasses,
+      currentClasses,
+      classesToEnroll: Object.values(final),
+    });
+  } else {
+    res.sendStatus(401);
+  }
+});
+
+app.post("/api/users/current/courses", async (req, res) => {
+  if (req.user?.StudentId) {
+    const { StudentId } = req.user;
+    const { category, code } = req.body;
+
+    await database.run(
+      SQL`
+      INSERT INTO Registration (StudentId, CourseCategory, CourseCode) 
+      VALUES (${StudentId}, ${category}, ${code})`
+    );
+
+    res.sendStatus(200);
+  } else {
+    res.sendStatus(401);
+  }
+});
+
+app.delete("/api/users/current/courses", async (req, res) => {
+  if (req.user?.StudentId) {
+    const { StudentId } = req.user;
+    const { category, code } = req.body;
+
+    await database.run(
+      SQL`DELETE FROM Registration WHERE StudentId = ${StudentId} AND CourseCategory = ${category} AND CourseCode = ${code}`
+    );
+
+    res.sendStatus(200);
+  } else {
+    res.sendStatus(401);
+  }
+});
+
+app.get("/api/faculty/current/courses", async (req, res) => {
+  if (req.user?.FacultyId) {
+    const { FacultyId } = req.user;
+    const taughtCourses = await database.all(
+      SQL`
+      SELECT * FROM Courses c
+      LEFT JOIN Teaches t 
+        ON t.CourseCategory = c.Category
+        AND t.CourseCode = c.Code
+      WHERE t.FacultyId = ${FacultyId}
+      `
+    );
+
+    const coursesToTeach = await database.all(
+      SQL`
+      SELECT * FROM Courses c
+      LEFT JOIN Teaches t
+        ON t.CourseCategory = c.Category
+        AND t.CourseCode = c.Code
+      WHERE t.FacultyId IS NOT ${FacultyId}
+      `
+    );
+
+    res.json({
+      taughtCourses,
+      coursesToTeach,
+    });
+  } else {
+    res.sendStatus(401);
+  }
+});
+
+app.post("/api/faculty/current/courses", async (req, res) => {
+  if (req.user?.FacultyId) {
+    const { FacultyId } = req.user;
+    const { category, code } = req.body;
+
+    await database.run(
+      SQL`
+      INSERT INTO Teaches (FacultyId, CourseCategory, CourseCode) 
+      VALUES (${FacultyId}, ${category}, ${code})`
+    );
+
+    res.sendStatus(200);
+  } else {
+    res.sendStatus(401);
+  }
+});
+
+app.delete("/api/faculty/current/courses", async (req, res) => {
+  if (req.user?.FacultyId) {
+    const { FacultyId } = req.user;
+    const { category, code } = req.body;
+
+    await database.run(
+      SQL`
+      DELETE FROM Teaches 
+      WHERE FacultyId = ${FacultyId} 
+        AND CourseCategory = ${category} 
+        AND CourseCode = ${code}`
+    );
+
+    res.sendStatus(200);
+  } else {
+    res.sendStatus(401);
+  }
+});
+
+app.post("/api/users/current/courses/grade", async (req, res) => {
+  if (req.user?.StudentId) {
+    const { StudentId } = req.user;
+    const { category, code, grade } = req.body;
+
+    await database.run(
+      SQL`
+      UPDATE Registration
+      SET Grade = ${grade}
+      WHERE StudentId = ${StudentId}
+      AND CourseCategory = ${category}
+      AND CourseCode = ${code}
+      `
+    );
+
+    res.sendStatus(200);
   } else {
     res.sendStatus(401);
   }

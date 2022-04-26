@@ -1,14 +1,5 @@
 import React, { useContext, useState } from "react";
-import {
-  Stack,
-  Text,
-  FontWeights,
-  IStackTokens,
-  IStackStyles,
-  ITextStyles,
-  Icon,
-} from "@fluentui/react";
-import { Background } from "../../components/Background/Background";
+import { Text, FontWeights, ITextStyles, Icon } from "@fluentui/react";
 import { UserForm } from "./UserForm";
 import type { User } from "./Schemas/User";
 import { useNavigate } from "react-router-dom";
@@ -17,6 +8,7 @@ import { Faculty } from "./Schemas/Faculty";
 import { StudentForm } from "./StudentForm";
 import { FacultyForm } from "./FacultyForm";
 import { UserContext, useUser } from "../../contexts/UserContext";
+import { Section } from "../../components/Section/Section";
 
 const textStyles: Partial<ITextStyles> = {
   root: {
@@ -29,16 +21,6 @@ const errorTextStyles: Partial<ITextStyles> = {
   root: {
     fontWeight: FontWeights.regular,
     color: "red",
-  },
-};
-
-const stackTokens: IStackTokens = {
-  childrenGap: 15,
-};
-const stackStyles: Partial<IStackStyles> = {
-  root: {
-    width: "960px",
-    margin: "0 auto",
   },
 };
 
@@ -102,55 +84,45 @@ export const RegisterUser: React.FunctionComponent = () => {
   };
 
   return (
-    <Background>
-      <Stack
-        horizontalAlign="center"
-        verticalAlign="center"
-        verticalFill
-        styles={stackStyles}
-        tokens={stackTokens}
-      >
-        <Stack styles={{ root: { textAlign: "center" } }} tokens={stackTokens}>
-          <Text variant="mega" styles={textStyles}>
-            {formSection === FormSection.InitialInformation ? (
-              <>
-                Welcome! <Icon iconName="Education"></Icon>
-              </>
-            ) : (
-              "Just a few more details"
-            )}
-          </Text>
-          <Text variant="xxLarge" styles={textStyles}>
-            {formSection === FormSection.InitialInformation
-              ? "Let's get your profile ready"
-              : "And you'll be ready to go!"}
-          </Text>
-        </Stack>
+    <>
+      <Section centerText>
+        <Text variant="mega" styles={textStyles}>
+          {formSection === FormSection.InitialInformation ? (
+            <>
+              Welcome! <Icon iconName="Education"></Icon>
+            </>
+          ) : (
+            "Just a few more details"
+          )}
+        </Text>
+        <Text variant="xxLarge" styles={textStyles}>
+          {formSection === FormSection.InitialInformation
+            ? "Let's get your profile ready"
+            : "And you'll be ready to go!"}
+        </Text>
         {message && (
           <Text variant="large" styles={errorTextStyles}>
             {message}
           </Text>
         )}
+      </Section>
 
-        <div>
-          {formSection === FormSection.InitialInformation ? (
-            <UserForm
-              onSubmit={loadInitialInformation}
-              initialValues={initialInformation}
-            />
-          ) : initialInformation?.accountType === "student" ? (
-            <StudentForm
-              onCancel={returnToInitialInformation}
-              onSubmit={submitRegistration}
-            />
-          ) : (
-            <FacultyForm
-              onCancel={returnToInitialInformation}
-              onSubmit={submitRegistration}
-            />
-          )}
-        </div>
-      </Stack>
-    </Background>
+      {formSection === FormSection.InitialInformation ? (
+        <UserForm
+          onSubmit={loadInitialInformation}
+          initialValues={initialInformation}
+        />
+      ) : initialInformation?.accountType === "student" ? (
+        <StudentForm
+          onCancel={returnToInitialInformation}
+          onSubmit={submitRegistration}
+        />
+      ) : (
+        <FacultyForm
+          onCancel={returnToInitialInformation}
+          onSubmit={submitRegistration}
+        />
+      )}
+    </>
   );
 };

@@ -9,7 +9,7 @@ const stackStyles: Partial<IStackStyles> = {
 
 export const Background: React.FunctionComponent = ({ children }) => {
   return (
-    <Stack verticalFill styles={stackStyles}>
+    <Stack styles={stackStyles} disableShrink>
       {children}
     </Stack>
   );

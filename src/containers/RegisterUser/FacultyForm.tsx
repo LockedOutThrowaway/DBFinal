@@ -3,24 +3,13 @@ import {
   DefaultButton,
   IChoiceGroupOption,
   IChoiceGroupStyles,
-  IStackStyles,
-  IStackTokens,
   ITextFieldStyles,
   PrimaryButton,
-  Stack,
   TextField,
 } from "@fluentui/react";
 import { useFormik } from "formik";
+import { Section } from "../../components/Section/Section";
 import { Faculty, FacultyValidationSchema } from "./Schemas/Faculty";
-
-const stackTokens: IStackTokens = {
-  childrenGap: 15,
-};
-const stackStyles: Partial<IStackStyles> = {
-  root: {
-    marginTop: "15px",
-  },
-};
 
 const whiteLabelStyle: Partial<IChoiceGroupStyles> = {
   label: {
@@ -96,12 +85,7 @@ export const FacultyForm: React.FunctionComponent<FacultyFormProps> = ({
   });
 
   return (
-    <Stack
-      horizontalAlign="center"
-      verticalAlign="center"
-      styles={stackStyles}
-      tokens={stackTokens}
-    >
+    <>
       <TextField
         styles={inputStyles}
         name="title"
@@ -136,14 +120,12 @@ export const FacultyForm: React.FunctionComponent<FacultyFormProps> = ({
         options={options}
         required
       />
-      <div>
-        <Stack horizontal styles={stackStyles} tokens={stackTokens}>
-          <DefaultButton onClick={onCancel}>Cancel</DefaultButton>
-          <PrimaryButton onClick={() => handleSubmit()} disabled={!isValid}>
-            Submit
-          </PrimaryButton>
-        </Stack>
-      </div>
-    </Stack>
+      <Section horizontal extraSpacing>
+        <DefaultButton onClick={onCancel}>Cancel</DefaultButton>
+        <PrimaryButton onClick={() => handleSubmit()} disabled={!isValid}>
+          Submit
+        </PrimaryButton>
+      </Section>
+    </>
   );
 };
